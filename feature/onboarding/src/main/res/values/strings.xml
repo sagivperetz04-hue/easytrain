@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_app_name">EasyTrain</string>
+
+    <string name="onboarding_email">Email</string>
+    <string name="onboarding_password">Password</string>
+
+    <string name="onboarding_sign_in_title">Sign in</string>
+    <string name="onboarding_sign_in_action">Sign in</string>
+    <string name="onboarding_sign_in_to_sign_up">No account yet? Sign up</string>
+    <string name="onboarding_forgot_password_link">Forgot your password?</string>
+
+    <string name="onboarding_sign_up_title">Create your account</string>
+    <string name="onboarding_sign_up_action">Sign up</string>
+    <string name="onboarding_sign_up_to_sign_in">Already have an account? Sign in</string>
+    <string name="onboarding_password_too_short">Use at least 8 characters.</string>
+
+    <string name="onboarding_forgot_password_title">Reset your password</string>
+    <string name="onboarding_forgot_password_action">Send reset link</string>
+    <string name="onboarding_forgot_password_sent">Check your inbox for the reset link.</string>
+    <string name="onboarding_back">Back</string>
+
+    <string name="onboarding_choose_role_title">How do you train?</string>
+    <string name="onboarding_choose_role_subtitle">This is permanent — a second account is needed to switch.</string>
+    <string name="onboarding_choose_role_coach">I\'m a coach</string>
+    <string name="onboarding_choose_role_coach_detail">Build plans, schedule sessions and follow your trainees.</string>
+    <string name="onboarding_choose_role_trainee">I\'m a trainee</string>
+    <string name="onboarding_choose_role_trainee_detail">Log your workouts and follow the plan your coach sets.</string>
+
+    <string name="onboarding_profile_title">Your details</string>
+    <string name="onboarding_profile_name">Name</string>
+    <string name="onboarding_profile_units">Weight units</string>
+    <string name="onboarding_profile_units_kg">kg</string>
+    <string name="onboarding_profile_units_lb">lb</string>
+    <string name="onboarding_profile_save">Save</string>
+
+    <string name="onboarding_invite_title">Your coach\'s code</string>
+    <string name="onboarding_invite_stub">Entering an invite code arrives in ET-003.</string>
+    <string name="onboarding_invite_skip">Skip for now</string>
+</resources>

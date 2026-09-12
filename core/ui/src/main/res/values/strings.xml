@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ui_error_offline">You\'re offline — this will send when you reconnect.</string>
+    <string name="ui_error_invalid_credentials">That email and password don\'t match.</string>
+    <string name="ui_error_email_taken">That email already has an account. Sign in instead.</string>
+    <string name="ui_error_email_not_confirmed">Confirm your email address, then sign in.</string>
+    <string name="ui_error_not_authenticated">Your session ended. Sign in again.</string>
+    <string name="ui_error_unexpected">Something went wrong. Try again.</string>
+</resources>

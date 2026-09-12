@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">EasyTrain</string>
-    <string name="auth_placeholder_title">EasyTrain</string>
-    <string name="auth_placeholder_body">Sign in arrives in ET-002.</string>
+    <string name="app_home_coach">Your trainees</string>
+    <string name="app_home_trainee">Today</string>
+    <string name="app_home_placeholder">The real home screen arrives with ET-004.</string>
+    <string name="app_sign_out">Sign out</string>
 </resources>

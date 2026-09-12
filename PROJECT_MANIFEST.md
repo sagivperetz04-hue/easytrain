@@ -2,9 +2,9 @@
 
 > Snapshot of everything built so far, section by section, plus the status of every roadmap
 > phase. Claude updates this file in the same PR as any change it describes.
-> Last updated: 2026-09-12 — ET-001 (Phase 0) in progress on `feature/ET-001-bootstrap`: module
-> skeleton, convention plugins, version catalog, CI and the Supabase workspace exist; no feature
-> code yet. ET-002 (auth, profiles, roles) is next.
+> Last updated: 2026-09-12 — ET-001 merged (PR #1). ET-002 in progress on
+> `feature/ET-002-auth-and-roles`: profiles table with a write-once role, the Supabase client,
+> auth/profile repositories and the onboarding screens. ET-003 (sync engine) is next.
 
 ---
 
@@ -34,8 +34,8 @@ Key decisions (details in `.claude/context.md`):
 
 | Phase | Ticket(s) | Scope | Status |
 |---|---|---|---|
-| 0 | ET-001 | Repo bootstrap: modules, convention plugins, catalog, CI, Supabase init | 🟨 feature/ET-001-bootstrap |
-| 1 | ET-002 | Auth, profiles, role onboarding | ⬜ |
+| 0 | ET-001 | Repo bootstrap: modules, convention plugins, catalog, CI, Supabase init | ✅ PR #1 |
+| 1 | ET-002 | Auth, profiles, role onboarding | 🟨 feature/ET-002-auth-and-roles |
 | 2 | ET-003, ET-004 | Sync engine · linking + coach hub (+ post-MVP schemas) | ⬜ |
 | 3 | ET-005 | Exercise library + program builder | ⬜ |
 | 4 | ET-006 | Trainee plan view + workout logger + coach log view | ⬜ |
@@ -57,36 +57,42 @@ later phases only add code; `app` and `core/designsystem` are the two that alrea
 | File | What it does |
 |---|---|
 | `EasyTrainApp.kt` | `@HiltAndroidApp` application |
-| `MainActivity.kt` | Single activity: splash screen API, edge-to-edge, `EasyTrainTheme`, `EasyTrainNavHost` |
-| `navigation/EasyTrainNavHost.kt` | `NavHost` with the single `AuthRoute` destination |
-| `navigation/EasyTrainRoutes.kt` | `@Serializable data object AuthRoute` (type-safe routes) |
-| `ui/AuthPlaceholderScreen.kt` | Themed placeholder + light/dark previews; replaced by ET-002 |
-| `src/test/.../AuthPlaceholderScreenTest.kt` | Robolectric + Compose smoke test |
-| `res/xml/network_security_config.xml` | Cleartext blocked; the debug variant allows `10.0.2.2` only |
+| `MainActivity.kt` | Single activity; keeps the splash up while the persisted session is restored, so a signed-in user never sees a flash of sign-in |
+| `MainViewModel.kt` | `AppUiState` = Loading / SignedOut / NeedsRole / NeedsProfile / Ready(role), combined from the session and the profile flow; owns sign-out (auth first, then Room) |
+| `navigation/EasyTrainNavHost.kt` | One NavHost per stage, so back can never walk into a signed-out graph; coach and trainee home placeholders |
+| `ui/HomePlaceholderScreen.kt`, `ui/LoadingScreen.kt` | Role-aware placeholder home (replaced in ET-004/ET-006) and the splash-to-content bridge |
+| `di/SupabaseConfigModule.kt` | Binds `BuildConfig.SUPABASE_URL` / `SUPABASE_PUBLISHABLE_KEY` into `SupabaseConfig` — a library module cannot read the app's BuildConfig |
+| `src/test/.../HomePlaceholderScreenTest.kt` | Robolectric: both roles render, sign-out fires |
 
 `BuildConfig.SUPABASE_URL` / `SUPABASE_PUBLISHABLE_KEY` are generated here from `local.properties`
 (then the environment, for CI) by `configureSupabaseBuildConfig` in build-logic; a missing value
-fails the build. **ET-002 follow-up:** `core/network` cannot read `app`'s `BuildConfig`, so the
-values are handed to `SupabaseClientProvider` through a Hilt module in `app`.
+fails the build.
 
 ### `core/*`
 | Module | Namespace | Plugins | Contents |
 |---|---|---|---|
-| `core/common` | `com.easytrain.core.common` | library | placeholder |
-| `core/model` | `com.easytrain.core.model` | library | placeholder |
-| `core/database` | `com.easytrain.core.database` | library + room | placeholder; Room + KSP wired, `schemas/` exported |
-| `core/network` | `com.easytrain.core.network` | library | placeholder |
-| `core/data` | `com.easytrain.core.data` | library | placeholder |
+| `core/common` | `com.easytrain.core.common` | library + hilt | `Dispatcher` qualifiers + module, `AppError` (expected failures), `AppResult` |
+| `core/model` | `com.easytrain.core.model` | library | `Profile`, `UserRole`, `Units` |
+| `core/database` | `com.easytrain.core.database` | library + room + hilt | `EasyTrainDatabase` (v1), `ProfileEntity`, `ProfileDao` (incl. `upsertFromServer`, which skips PENDING rows), `SyncState`/`SyncedEntity`, `schemas/` exported |
+| `core/network` | `com.easytrain.core.network` | library + hilt + serialization | `SupabaseConfig`, client provider (Auth/Postgrest/Realtime/Storage/Functions, OkHttp engine, PKCE, `easytrain://auth-callback`), `ProfileDto`, auth + profile remote data sources |
+| `core/data` | `com.easytrain.core.data` | library + hilt | `AuthRepository`/`SessionState`, `ProfileRepository` (read from Room, write through the server for now), mappers, Supabase-exception → `AppError` mapping |
 | `core/sync` | `com.easytrain.core.sync` | library | placeholder |
 | `core/notifications` | `com.easytrain.core.notifications` | library | placeholder |
 | `core/designsystem` | `com.easytrain.core.designsystem` | library.compose | `theme/Color.kt`, `theme/Tokens.kt` (Spacing, TouchTarget, Shapes), `theme/Theme.kt` (`EasyTrainTheme`, dynamic color off) |
-| `core/ui` | `com.easytrain.core.ui` | library.compose | placeholder; depends on `core:designsystem` |
-| `core/testing` | `com.easytrain.core.testing` | library | placeholder |
+| `core/ui` | `com.easytrain.core.ui` | library.compose | `ErrorBanner` and `AppError.asText()` — the one place failures become words |
+| `core/testing` | `com.easytrain.core.testing` | library | `MainDispatcherRule`, `FakeAuthRepository`, `FakeProfileRepository`, `testProfile()` |
 
 ### `feature/*`
 All eight apply `easytrain.android.feature` (= library.compose + hilt + serialization + the shared
-UI/nav/test dependencies) and contain a placeholder: `onboarding`, `coach/hub`, `coach/trainee`,
-`plans`, `workout`, `sessions`, `chat`, `profile` — namespaces `com.easytrain.feature.<path>`.
+UI/nav/test dependencies); namespaces `com.easytrain.feature.<path>`.
+
+`feature/onboarding` (ET-002): `OnboardingNavigation.kt` holds every route and graph builder;
+screens are `SignIn`, `SignUp`, `ForgotPassword`, `ChooseRole`, `ProfileSetup` and the
+`EnterInviteCode` stub, each as UiState + ViewModel + stateless screen with previews. Tests: three
+ViewModel tests (Turbine) and one Robolectric test per screen. No screen navigates between
+onboarding stages — the app reacts to the session and profile instead.
+
+Still placeholders: `coach/hub`, `coach/trainee`, `plans`, `workout`, `sessions`, `chat`, `profile`.
 
 ### `build-logic/convention`
 | Plugin id | Class | What it configures |
@@ -109,7 +115,7 @@ One row per table as migrations land. Template:
 
 | Table | Migration | Writer | Policies (summary) | Realtime | pgTAP file |
 |---|---|---|---|---|---|
-| _none yet — the first migration is ET-002's `create_profiles`_ | | | | | |
+| `profiles` | `20260912140216_create_profiles` | self | select/insert/update own row (`id = auth.uid()`); no delete policy. ET-004 widens select to the linked coach/trainee once `coach_trainees` exists | yes | `profiles.test.sql` (13 tests) |
 
 Workspace created by ET-001: `supabase/config.toml` (project_id `easytrain`, Postgres 17, email
 confirmations off locally, site URL `easytrain://auth-callback`), empty `migrations/`, idempotent
@@ -118,7 +124,11 @@ confirmations off locally, site URL `easytrain://auth-callback`), empty `migrati
 ### Functions / triggers / RPCs
 | Name | Kind | Migration | Purpose |
 |---|---|---|---|
-| _none yet_ | | | |
+| `set_updated_at()` | trigger fn | `create_profiles` | Stamps server time on every write so sync cursors never depend on a device clock. Created here rather than in ET-003 because `profiles` needs it on day one; ET-003's `create_sync_helpers` re-declares it with `create or replace` |
+| `auth_role()` | sql, stable | `create_profiles` | Reads the role out of the JWT so policies never query `profiles` |
+| `handle_new_user()` | trigger fn (definer) | `create_profiles` | Creates the profile row on `auth.users` insert |
+| `enforce_role_immutable()` | trigger fn | `create_profiles` | Rejects any change to a role that is already set — a policy cannot compare old and new rows |
+| `sync_role_to_jwt()` | trigger fn (definer) | `create_profiles` | Mirrors `profiles.role` into `auth.users.raw_app_meta_data` |
 
 ### Edge functions
 | Function | Trigger | Secrets required | Status |
@@ -167,6 +177,10 @@ app, and the repository is public — no real key may ever be committed or echoe
 
 ## 7. Local Development
 
+pgTAP helpers (`tests.create_user`, `tests.authenticate_as`, `tests.user_id`,
+`tests.clear_authentication`) live in `supabase/seed.sql`, not in a migration: they fabricate and
+impersonate auth users, so they must never reach a hosted project.
+
 ```
 supabase start            # Docker stack; copy URL/key from `supabase status` into local.properties (URL as http://10.0.2.2:54321 for the emulator)
 ./gradlew :app:installDebug
@@ -205,4 +219,8 @@ _No releases yet._ Format: `## vX.Y.Z — YYYY-MM-DD` followed by merged tickets
 | 2026-09-12 | Supabase BuildConfig | Generated in `:app` only; `core/network` receives the values via Hilt (a library module cannot read the app's `BuildConfig`) |
 | 2026-09-12 | compileSdk | Raised to 37 (targetSdk stays 36, minSdk 26): Compose 1.12 / BOM 2026.09.00 refuses to be consumed below 37. `context.md`'s Tech Stack row was corrected in the same PR after confirming with the user |
 | 2026-09-12 | ktlint + Compose | `.editorconfig` sets `ktlint_function_naming_ignore_when_annotated_with = Composable` so PascalCase composables pass `ktlintCheck` |
+| 2026-09-12 | Role immutability | Enforced by a trigger, not a policy: RLS `using`/`with check` cannot compare the old row with the new one |
+| 2026-09-12 | pgTAP helpers | In `seed.sql` (local-only) rather than a migration, because they create and impersonate auth users |
+| 2026-09-12 | Profile writes | ET-002 writes through the server and stores the response (`remote → local`); ET-003 moves them onto the sync engine so they queue offline |
+| 2026-09-12 | Robolectric SDK | Screen tests pin `@Config(sdk = [34])`: sandboxes for SDK 36+ need Java 21, and the toolchain is JDK 17 |
 | 2026-09-12 | Release signing | Not wired in ET-001 (`standards.md §7` env-based signing lands with ET-011, which is where `release.yml` appears) |

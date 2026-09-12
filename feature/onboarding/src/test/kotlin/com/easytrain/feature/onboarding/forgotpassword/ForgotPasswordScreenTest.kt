@@ -1,4 +1,4 @@
-package com.easytrain.app.ui
+package com.easytrain.feature.onboarding.forgotpassword
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -10,21 +10,25 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-// Robolectric sandboxes for SDK 36+ require Java 21; the project standard is JDK 17.
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
-class AuthPlaceholderScreenTest {
+class ForgotPasswordScreenTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
     @Test
-    fun `the placeholder screen renders the app name`() {
+    fun `once sent, the screen says where to look`() {
         composeTestRule.setContent {
             EasyTrainTheme {
-                AuthPlaceholderScreen()
+                ForgotPasswordScreen(
+                    state = ForgotPasswordUiState(email = "dana@example.com", isSent = true),
+                    onEmailChanged = {},
+                    onSubmit = {},
+                    onBack = {},
+                )
             }
         }
 
-        composeTestRule.onNodeWithText("EasyTrain").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Check your inbox for the reset link.").assertIsDisplayed()
     }
 }

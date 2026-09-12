@@ -8,8 +8,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+// Robolectric sandboxes for SDK 36+ require Java 21; the project standard is JDK 17.
 @RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 class AuthPlaceholderScreenTest {
     @get:Rule
     val composeTestRule = createComposeRule()

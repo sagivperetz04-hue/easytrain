@@ -1,0 +1,2 @@
+-- Seed data for the local stack. Must stay idempotent: `supabase db reset` re-runs it, and so do
+-- developers. Tables arrive in ET-002; the global exercise library and dev users land in ET-005.

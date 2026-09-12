@@ -1,0 +1,7 @@
+# Copy to local.properties and fill in. local.properties is git-ignored — never commit real keys.
+# sdk.dir is written by Android Studio.
+
+# Local Supabase stack (`supabase start`, then `supabase status`).
+# The Android emulator reaches the host at 10.0.2.2, not 127.0.0.1.
+SUPABASE_URL=http://10.0.2.2:54321
+SUPABASE_PUBLISHABLE_KEY=<the "publishable key" printed by `supabase status`>

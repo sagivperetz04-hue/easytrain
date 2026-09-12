@@ -1,0 +1,24 @@
+# Android Studio / IntelliJ
+.idea/
+*.iml
+.DS_Store
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Gradle
+.gradle/
+.kotlin/
+build/
+local.properties
+
+# Secrets — never commit
+*.jks
+*.keystore
+google-services.json
+.env
+.env.*
+
+# Supabase
+supabase/.temp/
+supabase/.branches/

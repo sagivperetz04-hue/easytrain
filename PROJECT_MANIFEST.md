@@ -2,7 +2,9 @@
 
 > Snapshot of everything built so far, section by section, plus the status of every roadmap
 > phase. Claude updates this file in the same PR as any change it describes.
-> Last updated: 2026-09-12, project bootstrapped — no code yet; ET-001 is next.
+> Last updated: 2026-09-12 — ET-001 (Phase 0) in progress on `feature/ET-001-bootstrap`: module
+> skeleton, convention plugins, version catalog, CI and the Supabase workspace exist; no feature
+> code yet. ET-002 (auth, profiles, roles) is next.
 
 ---
 
@@ -32,7 +34,7 @@ Key decisions (details in `.claude/context.md`):
 
 | Phase | Ticket(s) | Scope | Status |
 |---|---|---|---|
-| 0 | ET-001 | Repo bootstrap: modules, convention plugins, catalog, CI, Supabase init | ⬜ not started |
+| 0 | ET-001 | Repo bootstrap: modules, convention plugins, catalog, CI, Supabase init | 🟨 feature/ET-001-bootstrap |
 | 1 | ET-002 | Auth, profiles, role onboarding | ⬜ |
 | 2 | ET-003, ET-004 | Sync engine · linking + coach hub (+ post-MVP schemas) | ⬜ |
 | 3 | ET-005 | Exercise library + program builder | ⬜ |
@@ -48,24 +50,56 @@ Legend: ⬜ not started · 🟨 in progress (branch name) · ✅ merged (PR #)
 
 ## 3. Android Modules
 
-Fill in one subsection per module as it is created. Template:
+Kotlin sources live in `src/main/kotlin`. Every module below exists with a placeholder object so
+later phases only add code; `app` and `core/designsystem` are the two that already hold real code.
 
-### `app`
+### `app` — `com.easytrain.app`, applicationId `com.easytrain`
 | File | What it does |
 |---|---|
-| `EasyTrainApp.kt` | — |
-| `MainActivity.kt` | — |
-| `EasyTrainNavHost.kt` | — |
+| `EasyTrainApp.kt` | `@HiltAndroidApp` application |
+| `MainActivity.kt` | Single activity: splash screen API, edge-to-edge, `EasyTrainTheme`, `EasyTrainNavHost` |
+| `navigation/EasyTrainNavHost.kt` | `NavHost` with the single `AuthRoute` destination |
+| `navigation/EasyTrainRoutes.kt` | `@Serializable data object AuthRoute` (type-safe routes) |
+| `ui/AuthPlaceholderScreen.kt` | Themed placeholder + light/dark previews; replaced by ET-002 |
+| `src/test/.../AuthPlaceholderScreenTest.kt` | Robolectric + Compose smoke test |
+| `res/xml/network_security_config.xml` | Cleartext blocked; the debug variant allows `10.0.2.2` only |
 
-### `core/common` · `core/model` · `core/database` · `core/network` · `core/data` · `core/sync` · `core/notifications` · `core/designsystem` · `core/ui` · `core/testing`
-_Not created yet._
+`BuildConfig.SUPABASE_URL` / `SUPABASE_PUBLISHABLE_KEY` are generated here from `local.properties`
+(then the environment, for CI) by `configureSupabaseBuildConfig` in build-logic; a missing value
+fails the build. **ET-002 follow-up:** `core/network` cannot read `app`'s `BuildConfig`, so the
+values are handed to `SupabaseClientProvider` through a Hilt module in `app`.
 
-### `feature/onboarding` · `feature/coach/hub` · `feature/coach/trainee` · `feature/plans` · `feature/workout` · `feature/sessions` · `feature/chat` · `feature/profile`
-_Not created yet._
+### `core/*`
+| Module | Namespace | Plugins | Contents |
+|---|---|---|---|
+| `core/common` | `com.easytrain.core.common` | library | placeholder |
+| `core/model` | `com.easytrain.core.model` | library | placeholder |
+| `core/database` | `com.easytrain.core.database` | library + room | placeholder; Room + KSP wired, `schemas/` exported |
+| `core/network` | `com.easytrain.core.network` | library | placeholder |
+| `core/data` | `com.easytrain.core.data` | library | placeholder |
+| `core/sync` | `com.easytrain.core.sync` | library | placeholder |
+| `core/notifications` | `com.easytrain.core.notifications` | library | placeholder |
+| `core/designsystem` | `com.easytrain.core.designsystem` | library.compose | `theme/Color.kt`, `theme/Tokens.kt` (Spacing, TouchTarget, Shapes), `theme/Theme.kt` (`EasyTrainTheme`, dynamic color off) |
+| `core/ui` | `com.easytrain.core.ui` | library.compose | placeholder; depends on `core:designsystem` |
+| `core/testing` | `com.easytrain.core.testing` | library | placeholder |
+
+### `feature/*`
+All eight apply `easytrain.android.feature` (= library.compose + hilt + serialization + the shared
+UI/nav/test dependencies) and contain a placeholder: `onboarding`, `coach/hub`, `coach/trainee`,
+`plans`, `workout`, `sessions`, `chat`, `profile` — namespaces `com.easytrain.feature.<path>`.
 
 ### `build-logic/convention`
-_Not created yet._ Planned plugins: `easytrain.android.application`, `easytrain.android.library`,
-`easytrain.android.library.compose`, `easytrain.android.feature`, `easytrain.hilt`, `easytrain.android.room`.
+| Plugin id | Class | What it configures |
+|---|---|---|
+| `easytrain.android.application` | `AndroidApplicationConventionPlugin` | `com.android.application` + ktlint, common Android config, Compose, Supabase BuildConfig, `targetSdk`, R8 on release |
+| `easytrain.android.library` | `AndroidLibraryConventionPlugin` | `com.android.library` + ktlint + common Android config |
+| `easytrain.android.library.compose` | `AndroidLibraryComposeConventionPlugin` | the above + Compose compiler plugin, BOM and UI dependencies |
+| `easytrain.android.feature` | `AndroidFeatureConventionPlugin` | library.compose + hilt + serialization + `core:model`/`designsystem`/`ui`, nav, lifecycle, Robolectric |
+| `easytrain.android.room` | `AndroidRoomConventionPlugin` | `androidx.room` + KSP, `schemaDirectory`, Room dependencies |
+| `easytrain.hilt` | `HiltConventionPlugin` | KSP + Hilt plugin and dependencies |
+
+Shared helpers: `AndroidCommon.kt` (compileSdk 36 / minSdk 26 / Java 17 / unit-test options),
+`AndroidCompose.kt`, `SupabaseBuildConfig.kt`, `VersionCatalog.kt`.
 
 ---
 
@@ -75,7 +109,11 @@ One row per table as migrations land. Template:
 
 | Table | Migration | Writer | Policies (summary) | Realtime | pgTAP file |
 |---|---|---|---|---|---|
-| _none yet_ | | | | | |
+| _none yet — the first migration is ET-002's `create_profiles`_ | | | | | |
+
+Workspace created by ET-001: `supabase/config.toml` (project_id `easytrain`, Postgres 17, email
+confirmations off locally, site URL `easytrain://auth-callback`), empty `migrations/`, idempotent
+`seed.sql`, and `tests/smoke.test.sql` proving `supabase test db` runs.
 
 ### Functions / triggers / RPCs
 | Name | Kind | Migration | Purpose |
@@ -91,6 +129,12 @@ One row per table as migrations land. Template:
 Record here every step that cannot be expressed as a migration (enable Realtime, create the
 webhook, set function secrets, Storage bucket creation if not scripted, pg_cron enable).
 
+| Date | Step | Status |
+|---|---|---|
+| 2026-09-12 | Create the hosted project in the Supabase dashboard, then run `supabase link --project-ref <ref>` (on the destructive list — the user runs it) | ⬜ pending; record the project ref here |
+
+ET-001 targets the local stack only. Nothing has been pushed to a hosted project.
+
 ---
 
 ## 5. Sync Engine
@@ -104,14 +148,20 @@ storage, worker names, realtime channel naming, upload queue (ET-010).
 
 | Workflow | Trigger | Jobs | Status |
 |---|---|---|---|
-| `ci.yml` | PR / push to master | lint · unit-test · build · db-test (conditional) · ci-ok | planned (ET-001) |
+| `ci.yml` | PR / push to master | changes · lint · unit-test · build · db-test (only when `supabase/**` changed) · ci-ok | built (ET-001) |
 | `release.yml` | tag `v*.*.*` | signed `bundleRelease` → GitHub Release | planned (ET-011) |
 
-Composite actions: `.github/actions/gradle-setup`, `.github/actions/supabase-setup` (planned).
+Composite actions: `.github/actions/gradle-setup` (JDK 17 temurin + `gradle/actions/setup-gradle`,
+cache read-only off master). `supabase-setup` was not needed — `db-test` uses `supabase/setup-cli`
+directly. Every `uses:` is pinned to a full commit SHA resolved from the GitHub API in the ET-001
+session; `ci-ok` is the job to require on master.
 
 Required secrets (document when added): `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` (CI dummy
 values acceptable), `GOOGLE_SERVICES_JSON_B64`, `EASYTRAIN_KEYSTORE_B64`, `EASYTRAIN_KEYSTORE_PASSWORD`,
 `EASYTRAIN_KEY_ALIAS`, `EASYTRAIN_KEY_PASSWORD`.
+
+None are set yet: `ci.yml` hard-codes dummy Supabase values in `env:` because CI only compiles the
+app, and the repository is public — no real key may ever be committed or echoed.
 
 ---
 
@@ -149,3 +199,8 @@ _No releases yet._ Format: `## vX.Y.Z — YYYY-MM-DD` followed by merged tickets
 | 2026-09-12 | Stack | Native Kotlin + Compose (no KMP/Flutter) |
 | 2026-09-12 | MVP scope | Plans + logging sync (core), targets, sessions/calendar, chat, push. Body metrics + nutrition: schema in ET-003, UI post-MVP |
 | 2026-09-12 | Roles | One role per account, immutable; multi-role deferred |
+| 2026-09-12 | Repo visibility | Public GitHub repo (branch protection is free) — secret hygiene is therefore mandatory, not advisory |
+| 2026-09-12 | Kotlin plugin | AGP 9 enables built-in Kotlin by default, so `org.jetbrains.kotlin.android` is **not** applied anywhere; Kotlin's jvmTarget follows `compileOptions.targetCompatibility` (Java 17) |
+| 2026-09-12 | KSP versioning | KSP moved to standalone semver (2.3.12) and is no longer `<kotlin>-<ksp>`; the `/resolve-versions` rule for KSP is stale and was corrected in that skill |
+| 2026-09-12 | Supabase BuildConfig | Generated in `:app` only; `core/network` receives the values via Hilt (a library module cannot read the app's `BuildConfig`) |
+| 2026-09-12 | Release signing | Not wired in ET-001 (`standards.md §7` env-based signing lands with ET-011, which is where `release.yml` appears) |

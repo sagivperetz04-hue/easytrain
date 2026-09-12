@@ -42,7 +42,9 @@ Special cases:
 - **AGP ↔ Gradle**: after resolving AGP, read the required Gradle version from
   `https://developer.android.com/build/releases/gradle-plugin` (WebFetch) and set it in
   `gradle/wrapper/gradle-wrapper.properties` (`distributionUrl` … `-bin.zip`).
-- **Kotlin ↔ KSP**: KSP versions are `<kotlin>-<ksp>`; take the newest whose prefix matches the resolved Kotlin.
+- **Kotlin ↔ KSP**: KSP left the `<kotlin>-<ksp>` scheme at 2.3.0 and now ships standalone semver
+  (latest `<release>` wins), decoupled from the Kotlin version. Its plugin marker is on Maven Central,
+  not the Gradle plugin portal. Older `2.2.x-2.0.x` entries still appear in the metadata — ignore them.
 - **Compose compiler**: the `org.jetbrains.kotlin.plugin.compose` plugin version **equals** the Kotlin version.
 - **supabase-kt ↔ Ktor**: check the supabase-kt release notes for the Ktor major it targets; use the newest Ktor of that major.
 - **Room / Hilt via KSP**: no extra rule, but re-run the build after bumping — KSP2 mismatches show up only at compile time.

@@ -21,10 +21,11 @@ import com.easytrain.core.designsystem.theme.Spacing
 fun AuthPlaceholderScreen(modifier: Modifier = Modifier) {
     Scaffold(modifier = modifier.fillMaxSize()) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(Spacing.lg),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(Spacing.lg),
             verticalArrangement = Arrangement.spacedBy(Spacing.sm, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {

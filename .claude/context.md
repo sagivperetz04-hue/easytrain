@@ -251,7 +251,11 @@ actual latest stable via `/resolve-versions` before writing `libs.versions.toml`
 |---|---|---|---|
 | Language | Kotlin (K2), Coroutines + Flow, kotlinx-serialization | 2.4.x | Phase 0 |
 | Build | AGP + Gradle + JDK 17, version catalog, convention plugins in `build-logic/` | AGP 9.4.x / Gradle 9.6 | Phase 0 |
-| SDK | `minSdk 26`, `targetSdk 36`, `compileSdk 36` | | Phase 0 |
+| SDK | `minSdk 26`, `targetSdk 36`, `compileSdk 37` | | Phase 0 |
+
+`compileSdk` is 37 because Compose 1.12 (BOM 2026.09.00) refuses to be consumed below it;
+`targetSdk` deliberately stays at 36 — compiling against newer APIs is independent of opting
+into a new release's runtime behaviour.
 | UI | Jetpack Compose (BOM) + Material 3, Compose Compiler Gradle plugin | BOM 2026.08.00 | Phase 0 |
 | Navigation | `navigation-compose` with `@Serializable` routes | 2.9.x | Phase 0 |
 | DI | Hilt (KSP) | 2.5x | Phase 0 |

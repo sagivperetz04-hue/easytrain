@@ -203,4 +203,6 @@ _No releases yet._ Format: `## vX.Y.Z — YYYY-MM-DD` followed by merged tickets
 | 2026-09-12 | Kotlin plugin | AGP 9 enables built-in Kotlin by default, so `org.jetbrains.kotlin.android` is **not** applied anywhere; Kotlin's jvmTarget follows `compileOptions.targetCompatibility` (Java 17) |
 | 2026-09-12 | KSP versioning | KSP moved to standalone semver (2.3.12) and is no longer `<kotlin>-<ksp>`; the `/resolve-versions` rule for KSP is stale and was corrected in that skill |
 | 2026-09-12 | Supabase BuildConfig | Generated in `:app` only; `core/network` receives the values via Hilt (a library module cannot read the app's `BuildConfig`) |
+| 2026-09-12 | compileSdk | Raised to 37 (targetSdk stays 36, minSdk 26): Compose 1.12 / BOM 2026.09.00 refuses to be consumed below 37. `context.md`'s Tech Stack row was corrected in the same PR after confirming with the user |
+| 2026-09-12 | ktlint + Compose | `.editorconfig` sets `ktlint_function_naming_ignore_when_annotated_with = Composable` so PascalCase composables pass `ktlintCheck` |
 | 2026-09-12 | Release signing | Not wired in ET-001 (`standards.md §7` env-based signing lands with ET-011, which is where `release.yml` appears) |
